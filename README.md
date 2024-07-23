@@ -52,6 +52,9 @@ Check replication:
 
     ansible-playbook check_replication.yml
 
+Clean all conteiners 
+
+    ansible-playbook teardown.yml
 Conclusion
 
 This project provides a comprehensive solution to set up and verify PostgreSQL replication using Ansible and Docker. The playbooks automate the entire process, ensuring a consistent and repeatable setup.
