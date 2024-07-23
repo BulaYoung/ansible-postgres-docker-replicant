@@ -1,0 +1,22 @@
+---
+- name: Check PostgreSQL replication
+  hosts: master
+  become: yes
+  tasks:
+    - name: Create test table on master
+      command: docker exec -u postgres postgres_master psql -c "CREATE TABLE IF NOT EXISTS test_replication (id SERIAL PRIMARY KEY, data TEXT);"
+    
+    - name: Insert data into test table on master
+      command: docker exec -u postgres postgres_master psql -c "INSERT INTO test_replication (data) VALUES ('Hello, replication!');"
+
+- name: Verify replication on slave
+  hosts: slave
+  become: yes
+  tasks:
+    - name: Check data on slave
+      command: docker exec -u postgres postgres_slave psql -c "SELECT * FROM test_replication;"
+      register: replication_check
+
+    - name: Print replication check result
+      debug:
+        var: replication_check.stdout_lines

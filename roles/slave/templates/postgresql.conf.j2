@@ -1,0 +1,13 @@
+# PostgreSQL configuration file
+
+# Connection settings
+listen_addresses = '*'
+port = 5432
+
+# Replication settings
+wal_level = replica
+max_wal_senders = 10
+wal_keep_segments = 64
+
+# Primary server connection settings
+primary_conninfo = 'host=192.168.100.18 port=5433 user=replicator password=replicator_password'

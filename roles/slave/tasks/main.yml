@@ -1,0 +1,16 @@
+---
+- name: Configure replication parameters in postgresql.conf
+  template:
+    src: postgresql.conf.j2
+    dest: /var/lib/postgresql/data/postgresql.conf
+    mode: '0644'
+  notify: Restart PostgreSQL container
+
+- name: Create standby.signal file
+  file:
+    path: /var/lib/postgresql/data/standby.signal
+    state: touch
+    owner: postgres
+    group: postgres
+    mode: '0644'
+  notify: Restart PostgreSQL container

@@ -1,0 +1,52 @@
+---
+- name: Pull PostgreSQL image
+  docker_image:
+    name: postgres
+    tag: "12"
+    source: pull
+
+- name: Start PostgreSQL container
+  docker_container:
+    name: postgres_master
+    image: postgres:12
+    state: started
+    restart_policy: always
+    ports:
+      - "5432:5432"
+    env:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: mydb
+    volumes:
+      - /var/lib/postgresql/data:/var/lib/postgresql/data
+  tasks:
+    - name: Wait for PostgreSQL to start
+      wait_for:
+        port: 5432
+        delay: 10
+
+    - name: Configure PostgreSQL for replication
+      docker_container:
+        name: postgres_master
+        image: postgres:12
+        state: started
+        restart_policy: always
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: mydb
+        volumes:
+          - /var/lib/postgresql/data:/var/lib/postgresql/data
+      template:
+        src: postgresql.conf.j2
+        dest: /var/lib/postgresql/data/postgresql.conf
+        mode: '0644'
+      notify: Restart PostgreSQL container
+
+    - name: Create replication user
+      command: docker exec -u postgres postgres_master psql -c "CREATE ROLE replicator WITH REPLICATION PASSWORD 'replicator_password' LOGIN;"
+  handlers:
+    - name: Restart PostgreSQL container
+      docker_container:
+        name: postgres_master
+        state: restarted
