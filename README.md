@@ -22,7 +22,7 @@ project/
 Playbooks
 Master Setup
 
-playbooks/master_setup.yml
+ansible-playbook master_setup.yml
 
     Stops any existing PostgreSQL container.
     Removes existing data directory.
@@ -33,7 +33,7 @@ playbooks/master_setup.yml
 
 Replica Setup
 
-playbooks/slave_setup.yml
+ansible-playbook slave_setup.yml
 
     Stops any existing PostgreSQL container.
     Removes existing data directory.
@@ -44,7 +44,7 @@ playbooks/slave_setup.yml
 
 Check Replication
 
-playbooks/check_replication.yml
+ansible-playbook check_replication.yml
 
     Creates a test table and inserts data on the master.
     Verifies the presence of the test table and data on the replica.
