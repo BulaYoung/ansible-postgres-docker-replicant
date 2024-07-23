@@ -1,0 +1,24 @@
+---
+- name: Clean PostgreSQL data and stop containers
+  hosts: all
+  become: yes
+  tasks:
+    - name: Stop existing PostgreSQL container if running (master)
+      docker_container:
+        name: postgres_master
+        state: absent
+      when: "'master' in group_names"
+
+    - name: Stop existing PostgreSQL container if running (slaves)
+      docker_container:
+        name: postgres_slave
+        state: absent
+      when: "'slave' in group_names"
+
+    - name: Remove existing data directory (master)
+      command: docker run --rm -v /var/lib/postgresql/data:/var/lib/postgresql/data busybox sh -c "rm -rf /var/lib/postgresql/data/*"
+      when: "'master' in group_names"
+
+    - name: Remove existing data directory (slaves)
+      command: docker run --rm -v /var/lib/postgresql/data:/var/lib/postgresql/data busybox sh -c "rm -rf /var/lib/postgresql/data/*"
+      when: "'slave' in group_names"

@@ -1,5 +1,4 @@
-#README
-#PostgreSQL Replication Setup with Ansible
+PostgreSQL Replication Setup with Ansible
 
 This project automates the setup of PostgreSQL replication using Ansible. It configures a master and a replica (slave) PostgreSQL server using Docker containers. The project also includes a playbook to verify the replication by creating a test table on the master and checking its presence on the replica.
 
@@ -52,6 +51,9 @@ Check replication:
 
     ansible-playbook check_replication.yml
 
+Clean all conteiners 
+
+    ansible-playbook teardown.yml
 Conclusion
 
 This project provides a comprehensive solution to set up and verify PostgreSQL replication using Ansible and Docker. The playbooks automate the entire process, ensuring a consistent and repeatable setup.

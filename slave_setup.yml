@@ -8,16 +8,16 @@
         name: postgres_slave
         state: absent
 
-    - name: Pull PostgreSQL image
-      docker_image:
-        name: postgres
-        tag: "12"
-        source: pull
-
-    - name: Remove existing data directory inside container
+    - name: Remove existing data directory
       command: docker run --rm -v /var/lib/postgresql/data:/var/lib/postgresql/data busybox sh -c "rm -rf /var/lib/postgresql/data/*"
 
-    - name: Create new data directory inside container
+    - name: Pull PostgreSQL 14 image
+      docker_image:
+        name: postgres
+        tag: "14"
+        source: pull
+
+    - name: Create new data directory
       command: docker run --rm -v /var/lib/postgresql/data:/var/lib/postgresql/data busybox sh -c "mkdir -p /var/lib/postgresql/data && chown -R 999:999 /var/lib/postgresql/data"
 
     - name: Perform base backup from master
@@ -25,17 +25,26 @@
         docker run --rm -v /var/lib/postgresql/data:/var/lib/postgresql/data \
         --network host \
         -e PGPASSWORD=replicator_password \
-        postgres:12 \
+        postgres:14 \
         pg_basebackup -h 192.168.100.18 -p 5433 -D /var/lib/postgresql/data -U replicator -v -P --wal-method=stream
+
+    - name: Create standby.signal file
+      command: docker run --rm -v /var/lib/postgresql/data:/var/lib/postgresql/data busybox sh -c "touch /var/lib/postgresql/data/standby.signal"
+
+    - name: Configure replication parameters in postgresql.conf
+      template:
+        src: roles/slave/templates/postgresql.conf.j2
+        dest: /var/lib/postgresql/data/postgresql.conf
+      notify: Restart PostgreSQL container
 
     - name: Start PostgreSQL container
       docker_container:
         name: postgres_slave
-        image: postgres:12
+        image: postgres:14
         state: started
         restart_policy: always
         ports:
-          - "5433:5432"
+          - "5432:5432"
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -45,19 +54,8 @@
 
     - name: Wait for PostgreSQL to start
       wait_for:
-        port: 5433
+        port: 5432
         delay: 10
-
-    - name: Configure replication parameters in postgresql.conf
-      template:
-        src: roles/slave/templates/postgresql.conf.j2
-        dest: /var/lib/postgresql/data/postgresql.conf
-        mode: '0644'
-      notify: Restart PostgreSQL container
-
-    - name: Create standby.signal file
-      command: docker exec -u postgres postgres_slave touch /var/lib/postgresql/data/standby.signal
-      notify: Restart PostgreSQL container
 
   handlers:
     - name: Restart PostgreSQL container

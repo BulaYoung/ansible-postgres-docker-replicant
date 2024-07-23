@@ -11,10 +11,10 @@
     - name: Remove existing data directory
       command: docker run --rm -v /var/lib/postgresql/data:/var/lib/postgresql/data busybox sh -c "rm -rf /var/lib/postgresql/data/*"
 
-    - name: Pull PostgreSQL image
+    - name: Pull PostgreSQL 14 image
       docker_image:
         name: postgres
-        tag: "12"
+        tag: "14"
         source: pull
 
     - name: Create new data directory
@@ -23,7 +23,7 @@
     - name: Start PostgreSQL container
       docker_container:
         name: postgres_master
-        image: postgres:12
+        image: postgres:14
         state: started
         restart_policy: always
         ports:
@@ -40,46 +40,20 @@
         port: 5433
         delay: 10
 
+    - name: Create replication user
+      command: docker exec -u postgres postgres_master psql -c "CREATE ROLE replicator WITH REPLICATION PASSWORD 'replicator_password' LOGIN;"
+
     - name: Configure PostgreSQL for replication
-      copy:
-        content: |
-          listen_addresses = '*'
-          wal_level = replica
-          max_wal_senders = 3
-          wal_keep_segments = 64
-          archive_mode = on
-          archive_command = 'cd .'
+      template:
+        src: roles/master/templates/postgresql.conf.j2
         dest: /var/lib/postgresql/data/postgresql.conf
-        mode: '0644'
       notify: Restart PostgreSQL container
 
     - name: Configure pg_hba.conf for replication
       template:
         src: roles/master/templates/pg_hba.conf.j2
         dest: /var/lib/postgresql/data/pg_hba.conf
-        mode: '0644'
       notify: Restart PostgreSQL container
-
-    - name: Restart PostgreSQL container to apply pg_hba.conf changes
-      docker_container:
-        name: postgres_master
-        state: started
-        restart: yes
-
-    - name: Check if replication user exists
-      command: docker exec -u postgres postgres_master psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='replicator'"
-      register: replication_user_exists
-      changed_when: false
-
-    - name: Create replication user
-      command: docker exec -u postgres postgres_master psql -c "CREATE ROLE replicator WITH REPLICATION PASSWORD 'replicator_password' LOGIN;"
-      when: replication_user_exists.stdout == ''
-
-    - name: Create test table on master
-      command: docker exec -u postgres postgres_master psql -c "CREATE TABLE test_replication (id SERIAL PRIMARY KEY, data TEXT);"
-    
-    - name: Insert data into test table on master
-      command: docker exec -u postgres postgres_master psql -c "INSERT INTO test_replication (data) VALUES ('Hello, replication!');"
 
   handlers:
     - name: Restart PostgreSQL container
