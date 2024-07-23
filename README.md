@@ -51,17 +51,17 @@ playbooks/check_replication.yml
 
 Usage
 
-    Set up the master:
+Set up the master:
 
-    bash
+bash
 
-ansible-playbook playbooks/master_setup.yml
+    ansible-playbook playbooks/master_setup.yml
 
 Set up the replica:
 
 bash
 
-ansible-playbook playbooks/slave_setup.yml
+    ansible-playbook playbooks/slave_setup.yml
 
 Check replication:
 
