@@ -1,60 +1,108 @@
-PostgreSQL 12 Replication Setup with Ansible
+# PostgreSQL 12 Replication with Ansible and Docker
 
-Available same project on PostgreSQL 14 in second branch
-This project automates the setup of PostgreSQL replication using Ansible. It configures a master and a replica (slave) PostgreSQL server using Docker containers. The project also includes a playbook to verify the replication by creating a test table on the master and checking its presence on the replica.
+# Available same project on PostgreSQL 14 in second branch
 
-Master Setup
+This project provides a comprehensive solution to set up and verify PostgreSQL replication using Ansible and Docker. The playbooks automate the entire process of configuring master and slave servers, as well as verifying replication.
 
-master_setup.yml
+# Features
 
-    Stops any existing PostgreSQL container.
-    Removes existing data directory.
-    Pulls PostgreSQL Docker image.
-    Starts a new PostgreSQL container configured as a master.
-    Configures replication settings and creates a replication user.
-    Creates a test table and inserts data.
+- Sets up a new PostgreSQL container as the master.
+- Sets up a new PostgreSQL container as a replica.
+- Configures replication settings.
+- Verifies replication.
+- Configures SSL for secure data transmission.
 
-Replica Setup
+# Prerequisites
 
-slave_setup.yml
+- Docker
+- Ansible
+- OpenSSL (for generating SSL certificates)
 
-    Stops any existing PostgreSQL container.
-    Removes existing data directory.
-    Pulls PostgreSQL Docker image.
-    Performs base backup from the master.
-    Starts a new PostgreSQL container configured as a replica.
-    Configures replication settings.
+# Usage
 
-Check Replication
+Configuration
 
-check_replication.yml
+1. Set the IP addresses for the master and slaves in the following files:
+   - `roles/master/templates/pg_hba.conf.j2`
+   - `roles/slave/templates/postgresql.conf.j2`
 
-    Creates a test table and inserts data on the master.
-    Verifies the presence of the test table and data on the replica.
+2. Change the default password in `master_setup.yml` and `slave_setup.yml`.
 
-Usage
-First thing set ip addresses for master and slaves in roles/master/templates/pg_hba.conf.j2
-roles/slave/templates/postgresql.conf.j2
+3. Generate SSL certificates and place them in the appropriate directory on the master server.
 
-Change password from default in master_setup.yml and slave_setup.yml
+Generate SSL Certificates
 
-Set up the master:
-
-    ansible-playbook master_setup.yml
-
-Set up the replica:
+Run the following commands on the master server to generate self-signed SSL certificates:
 
 
-    ansible-playbook slave_setup.yml
+# Create a directory for certificates
+```bash
+mkdir -p /var/lib/postgresql/certs
+```
+# Navigate to the directory
+```bash
+cd /var/lib/postgresql/certs
+```
+# Generate a private key
+```bash
+openssl genrsa -out server.key 2048
+```
+# Restrict access to the private key
+```bash
+chmod 600 server.key
+```
+# Generate a self-signed certificate
+```bash
+openssl req -new -x509 -key server.key -out server.crt -days 3650 -subj "/CN=$(hostname)"
+```
+### Set up the Master
 
-Check replication:
+Run the following command to set up the master server:
 
+```bash
+ansible-playbook master_setup.yml -i inventory
+```
 
-    ansible-playbook check_replication.yml
+### Set up the Replica
 
-Clean all conteiners 
+Run the following command to set up the replica server(s):
 
-    ansible-playbook teardown.yml
-Conclusion
+```bash
+ansible-playbook slave_setup.yml -i inventory
+```
 
-This project provides a comprehensive solution to set up and verify PostgreSQL replication using Ansible and Docker. The playbooks automate the entire process, ensuring a consistent and repeatable setup.
+### Check Replication
+
+Run the following command to create a test table, insert data on the master, and verify the presence of the test table and data on the replica:
+
+```bash
+ansible-playbook check_replication.yml -i inventory
+```
+
+### Clean All Containers
+
+Run the following command to clean up all containers:
+
+```bash
+ansible-playbook teardown.yml -i inventory
+```
+
+### Conclusion
+
+This project provides a comprehensive solution to set up and verify PostgreSQL replication using Ansible and Docker. The playbooks automate the entire process, ensuring a consistent and reliable configuration.
+
+### Additional Notes
+
+- Ensure that the SSL certificates are correctly copied to the master and slave containers.
+- The `pg_hba.conf` and `postgresql.conf` files must be correctly configured to enable SSL and allow replication connections.
+- Monitor the replication status and logs to troubleshoot any issues that may arise.
+```
+
+### Summary of Changes
+
+1. Added a section on generating SSL certificates.
+2. Provided instructions for setting up SSL in `pg_hba.conf` and `postgresql.conf`.
+3. Included commands for setting up the master, replica, checking replication, and cleaning up containers.
+4. Added additional notes for SSL configuration and troubleshooting.
+
+This updated `README.md` should help users understand how to configure and use SSL for secure PostgreSQL replication.
