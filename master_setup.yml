@@ -20,6 +20,15 @@
     - name: Create new data directory
       command: docker run --rm -v /var/lib/postgresql/data:/var/lib/postgresql/data busybox sh -c "mkdir -p /var/lib/postgresql/data && chown -R 999:999 /var/lib/postgresql/data"
 
+    - name: Create certs directory inside container
+      command: docker run --rm -v /var/lib/postgresql/certs:/var/lib/postgresql/certs busybox sh -c "mkdir -p /var/lib/postgresql/certs && chown -R 999:999 /var/lib/postgresql/certs"
+
+    - name: Copy SSL certificates to container
+      copy:
+        src: /var/lib/postgresql/certs/
+        dest: /var/lib/postgresql/certs/
+        remote_src: no
+
     - name: Start PostgreSQL container
       docker_container:
         name: postgres_master
@@ -34,6 +43,13 @@
           POSTGRES_DB: mydb
         volumes:
           - /var/lib/postgresql/data:/var/lib/postgresql/data
+          - /var/lib/postgresql/certs:/var/lib/postgresql/certs
+
+    - name: Ensure correct permissions on server.key inside container
+      command: docker exec -u root postgres_master chown postgres:postgres /var/lib/postgresql/certs/server.key
+
+    - name: Ensure correct permissions on server.key file mode
+      command: docker exec -u root postgres_master chmod 600 /var/lib/postgresql/certs/server.key
 
     - name: Wait for PostgreSQL to start
       wait_for:
