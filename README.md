@@ -1,9 +1,8 @@
-```markdown
-# PostgreSQL 14 Replication with Ansible and Docker
+PostgreSQL 14 Replication with Ansible and Docker
 
 This project provides a comprehensive solution to set up and verify PostgreSQL replication using Ansible and Docker. The playbooks automate the entire process of configuring master and slave servers, as well as verifying replication.
 
-## Features
+Features
 
 - Sets up a new PostgreSQL container as the master.
 - Sets up a new PostgreSQL container as a replica.
@@ -11,15 +10,15 @@ This project provides a comprehensive solution to set up and verify PostgreSQL r
 - Verifies replication.
 - Configures SSL for secure data transmission.
 
-## Prerequisites
+Prerequisites
 
 - Docker
 - Ansible
 - OpenSSL (for generating SSL certificates)
 
-## Usage
+Usage
 
-### Configuration
+Configuration
 
 1. Set the IP addresses for the master and slaves in the following files:
    - `roles/master/templates/pg_hba.conf.j2`
@@ -29,27 +28,31 @@ This project provides a comprehensive solution to set up and verify PostgreSQL r
 
 3. Generate SSL certificates and place them in the appropriate directory on the master server.
 
-### Generate SSL Certificates
+Generate SSL Certificates
 
 Run the following commands on the master server to generate self-signed SSL certificates:
 
-```bash
+
 # Create a directory for certificates
+```bash
 mkdir -p /var/lib/postgresql/certs
-
+```
 # Navigate to the directory
+```bash
 cd /var/lib/postgresql/certs
-
+```
 # Generate a private key
+```bash
 openssl genrsa -out server.key 2048
-
+```
 # Restrict access to the private key
+```bash
 chmod 600 server.key
-
+```
 # Generate a self-signed certificate
+```bash
 openssl req -new -x509 -key server.key -out server.crt -days 3650 -subj "/CN=$(hostname)"
 ```
-
 ### Set up the Master
 
 Run the following command to set up the master server:
