@@ -1,8 +1,8 @@
-PostgreSQL 14 Replication with Ansible and Docker
+# PostgreSQL 14 Replication with Ansible and Docker
 
 This project provides a comprehensive solution to set up and verify PostgreSQL replication using Ansible and Docker. The playbooks automate the entire process of configuring master and slave servers, as well as verifying replication.
 
-Features
+# Features
 
 - Sets up a new PostgreSQL container as the master.
 - Sets up a new PostgreSQL container as a replica.
@@ -10,13 +10,13 @@ Features
 - Verifies replication.
 - Configures SSL for secure data transmission.
 
-Prerequisites
+# Prerequisites
 
 - Docker
 - Ansible
 - OpenSSL (for generating SSL certificates)
 
-Usage
+# Usage
 
 Configuration
 
