@@ -97,8 +97,7 @@ This project provides a comprehensive solution to set up and verify PostgreSQL r
 - The `pg_hba.conf` and `postgresql.conf` files must be correctly configured to enable SSL and allow replication connections.
 - Monitor the replication status and logs to troubleshoot any issues that may arise.
 ```
-
-### Summary of Changes
+# Summary of Changes
 
 1. Added a section on generating SSL certificates.
 2. Provided instructions for setting up SSL in `pg_hba.conf` and `postgresql.conf`.
